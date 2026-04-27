@@ -1561,5 +1561,5 @@ instant_hide = true; // or false for soft fade
 
 ---
 
-_NITW Dialogue System - Myles Moore_  
+_NITW Dialogue System — LoafCentral / Myles Moore_  
 _Built as a reusable prototype foundation for GMS2 projects._
