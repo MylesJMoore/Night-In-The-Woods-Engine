@@ -44,3 +44,15 @@ if _buffer != -1 {
 // -------------------------
 typewriter_sound = snd_typewriter; // swap this per game
 typewriter_pitch_vary = true;      // slight random pitch for personality
+
+// -------------------------
+// DIALOGUE RENDERER
+// -------------------------
+current_renderer   = "bubble"; // "bubble" or "box" — set per node
+current_box_layout = "full";   // "full" | "portrait" | "name_only"
+
+// -------------------------
+// GUI DIMENSIONS
+// -------------------------
+// Match GUI dimensions to viewport
+display_set_gui_size(1920, 1080); // match your ZOOM_NORMAL camera size

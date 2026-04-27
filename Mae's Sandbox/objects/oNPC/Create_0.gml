@@ -11,3 +11,7 @@ triggered_auto = false;
 dialogue_was_active = false;
 prompt_inst = instance_create_layer(x, y, "Instances", obj_dialogue_prompt);
 prompt_inst.follow_inst = id;
+
+// Dialogue Renderer Config
+default_renderer   = "bubble"; // override to "box" per NPC in Creation Code
+default_box_layout = "full";

@@ -1,19 +1,44 @@
 {
   "nodes": [
-    {
+	{
       "id": "npc_01_greet",
-      "trigger": "press",
+      "renderer": "box",
+      "box_layout": "portrait",
       "lines": [
-        { "speaker": "npc_01", "text": "Oh hey. You're back." },
-        { "speaker": "mae",    "text": "Yeah I... [wave]needed to walk.[/wave]" },
-        { "speaker": "npc_01", "text": "Good to see you either way." }
+        {
+          "speaker": "npc_01",
+          "text": "Oh hey. You're back.",
+          "portrait": "spr_portrait_placeholder"
+        },
+        {
+          "speaker": "mae",
+          "text": "Yeah I just... [wave]needed to walk.[/wave]",
+          "portrait": "spr_mae_portrait"
+        }
       ]
     },
     {
       "id": "npc_01_greet_return",
-      "trigger": "press",
+      "renderer": "box",
+      "box_layout": "name_only",
       "lines": [
         { "speaker": "npc_01", "text": "Still hanging around huh." }
+      ]
+    },
+    {
+      "id": "npc_05_greet",
+      "trigger": "press",
+      "lines": [
+        { "speaker": "npc_05", "text": "Oh hey. You're back." },
+        { "speaker": "mae",    "text": "Yeah I... [wave]needed to walk.[/wave]" },
+        { "speaker": "npc_05", "text": "Good to see you either way." }
+      ]
+    },
+    {
+      "id": "npc_05_greet_return",
+      "trigger": "press",
+      "lines": [
+        { "speaker": "npc_05", "text": "Still hanging around huh." }
       ]
     },
     {
