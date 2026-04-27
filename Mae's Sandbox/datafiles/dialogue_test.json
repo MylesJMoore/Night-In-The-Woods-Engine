@@ -1,0 +1,139 @@
+{
+  "nodes": [
+    {
+      "id": "npc_01_greet",
+      "trigger": "press",
+      "lines": [
+        { "speaker": "npc_01", "text": "Oh hey. You're back." },
+        { "speaker": "mae",    "text": "Yeah I... [wave]needed to walk.[/wave]" },
+        { "speaker": "npc_01", "text": "Good to see you either way." }
+      ]
+    },
+    {
+      "id": "npc_01_greet_return",
+      "trigger": "press",
+      "lines": [
+        { "speaker": "npc_01", "text": "Still hanging around huh." }
+      ]
+    },
+    {
+      "id": "npc_02_greet",
+      "trigger": "press",
+      "lines": [
+        { "speaker": "npc_02", "text": "Feelin' a bit down today." },
+        {
+          "type": "choice",
+		  "style": "vertical",
+		  "title": "You doing [i]okay[/i]?",
+          "options": [
+            { "text": "Yeah I'm fine.",  "goto": "npc_02_fine" },
+            { "text": "Not really.",     "goto": "npc_02_bad"  }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "npc_02_fine",
+      "lines": [
+        { "speaker": "npc_02", "text": "Good. That's good." },
+        { "speaker": "mae",    "text": "..." }
+      ]
+    },
+    {
+      "id": "npc_02_bad",
+      "lines": [
+        { "speaker": "npc_02", "text": "[wave]Hey. It's okay.[/wave]" },
+        { "speaker": "mae",    "text": "[shake]Is it?[/shake]" }
+      ]
+    },
+	{
+		"id": "npc_02_greet_return",
+		"trigger": "press",
+		"lines": [
+			{ "speaker": "npc_02", "text": "You still thinking about what I asked?" }
+		]
+	},
+    {
+      "id": "npc_03_greet",
+      "trigger": "press",
+      "lines": [
+        { "speaker": "npc_03", "text": "Looks like it's rainin' again." },
+        {
+          "type": "choice",
+		  "style": "horizontal",
+		  "title": "You enjoyin' this weather [i]at all[/i]?",
+          "options": [
+            { "text": "Yep! Love rain!",  "goto": "npc_03_fine" },
+            { "text": "Nope.",     "goto": "npc_03_bad"  }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "npc_03_fine",
+      "lines": [
+        { "speaker": "npc_03", "text": "I love the rain." },
+        { "speaker": "mae",    "text": "Same." }
+      ]
+    },
+    {
+      "id": "npc_03_bad",
+      "lines": [
+        { "speaker": "npc_03", "text": "[wave]I get that.[/wave]" },
+        { "speaker": "mae",    "text": "[shake]Do you?[/shake]" }
+      ]
+    },
+	{
+		"id": "npc_03_greet_return",
+		"trigger": "press",
+		"lines": [
+			{ "speaker": "npc_03", "text": "Thinkin' the rain will stop soon." }
+		]
+	},
+    {
+      "id": "npc_04_greet",
+      "trigger": "press",
+      "lines": [
+        { "speaker": "npc_04", "text": "So..." },
+        {
+			"type": "choice",
+			"style": "horizontal_extended",
+			"title": "What do you think?",
+			"options": [
+				{ "text": "This looks great.",  "goto": "npc_04_fine"   },
+				{ "text": "Not a fan.",        "goto": "npc_04_bad"    },
+				{ "text": "I don't know. Game development is really hard and you never know when you've done enough.",       "goto": "npc_04_unsure" }
+			]
+		}
+      ]
+    },
+    {
+      "id": "npc_04_fine",
+      "lines": [
+        { "speaker": "npc_04", "text": "Agreed." },
+        { "speaker": "mae",    "text": "Yup. Dialogue looks [shake]good![/shake]" }
+      ]
+    },
+    {
+      "id": "npc_04_bad",
+      "lines": [
+        { "speaker": "npc_04", "text": "[wave]Awwww.[/wave]" },
+        { "speaker": "mae",    "text": "[shake]It's okay![/shake]" }
+      ]
+    },
+	{
+      "id": "npc_04_unsure",
+      "lines": [
+        { "speaker": "npc_04", "text": "It's looking [wave]pretty[/wave] good." },
+        { "speaker": "mae",    "text": "Hmm. I guess you're right." }
+      ]
+    },
+	{
+		"id": "npc_04_greet_return",
+		"trigger": "press",
+		"lines": [
+			{ "speaker": "npc_04", "text": "Time to work on other features." }
+		]
+	}
+  ]
+}
