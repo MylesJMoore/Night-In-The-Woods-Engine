@@ -2,8 +2,8 @@
 
 ### A Night in the Woods-Inspired Dialogue Engine for GameMaker Studio 2
 
-**Author:** Myles Moore  
-**Version:** 1.0  
+**Author:** Myles Moore
+**Version:** 1.1  
 **Engine:** GameMaker Studio 2 (GML)
 
 ---
@@ -15,6 +15,7 @@
 3. [Object Reference](#object-reference)
    - [obj_dialogue_manager](#obj_dialogue_manager)
    - [obj_dialogue_bubble](#obj_dialogue_bubble)
+   - [obj_dialogue_box](#obj_dialogue_box)
    - [obj_dialogue_prompt](#obj_dialogue_prompt)
    - [oMae (Player)](#omae-player)
    - [oNPC](#onpc)
@@ -31,12 +32,16 @@
 
 ## System Overview
 
-This is a fully data-driven dialogue system inspired by Night in the Woods. Dialogue lives in external JSON files - no hardcoded strings in objects. The engine supports:
+This is a fully data-driven dialogue system inspired by Night in the Woods and Undertale. Dialogue lives in external JSON files — no hardcoded strings in objects. The engine supports:
 
 - Speech bubbles that dynamically follow speakers
+- Bottom-screen fixed textbox renderer (Undertale / Mother 3 / Lisa style)
+- Swappable 9-slice box sprites — drop in any textbox art
+- Portrait support with name tag (Mother 3 layout)
 - Typewriter text reveal with snap-to-full on input
-- Inline text effects (`[wave]`, `[shake]`, `[i]`, `[color]`)
-- Three choice styles: vertical list, horizontal side-by-side, and NITW-style dot navigation
+- Inline text effects (`[wave]`, `[shake]`, `[i]`, `[color]`, `[br]`)
+- Three choice styles: vertical list, horizontal side-by-side, NITW-style dot navigation
+- Per-node renderer selection — bubble or box, per node or per NPC default
 - Per-NPC conversation memory via a flag system
 - Press and auto-trigger modes
 - Proximity prompt that appears when Mae is near an NPC
@@ -49,26 +54,31 @@ This is a fully data-driven dialogue system inspired by Night in the Woods. Dial
 ```
 obj_dialogue_manager        Singleton. Loads JSON, owns dialogue state,
                             drives typewriter and input handling.
+                            Tracks current renderer (bubble or box).
 
-obj_dialogue_bubble         Spawned per line. Renders the speech bubble,
-                            text effects, and choice UI above a speaker.
+obj_dialogue_bubble         Spawned per line. Renders speech bubble above
+                            speaker in room space. Follows speaker position.
+
+obj_dialogue_box            Spawned per line. Renders fixed bottom-screen
+                            textbox in GUI space. Supports portrait, name tag,
+                            and full layouts. Swappable 9-slice sprite background.
 
 obj_dialogue_prompt         Spawned by each NPC on Create. Shows a small
                             floating bubble hint when Mae is nearby.
 
 oNPC                        Any NPC in the world. Holds its own config
-                            (npc_id, trigger_type, trigger_range) and
-                            drives proximity detection.
+                            (npc_id, trigger_type, trigger_range,
+                            default_renderer) and drives proximity detection.
 
 oMae                        Player. Input is locked during active dialogue.
 
 scr_dialogue_parser         Converts tagged text strings into character
-                            struct arrays used by the bubble renderer.
+                            struct arrays used by both renderers.
 
 scr_dialogue_functions      All dialogue lifecycle functions:
                             start, show_line, next_line, end,
                             set_flag, get_flag, bubble_set_option,
-                            count_lines.
+                            count_lines, get_speaker_name.
 ```
 
 ### Data Flow
@@ -77,12 +87,15 @@ scr_dialogue_functions      All dialogue lifecycle functions:
 JSON File
    └─► obj_dialogue_manager (loads on Create)
             └─► dialogue_start(node_id)
+                     └─► reads "renderer" field from node
                      └─► dialogue_show_line()
                               └─► scr_dialogue_parser → char structs
-                              └─► obj_dialogue_bubble (spawned)
-                                       └─► Draw Event (renders bubble + text)
-                                       └─► Step Event (text effects + extended typewriter)
-                              └─► obj_dialogue_manager Step (typewriter + input)
+                              └─► obj_dialogue_bubble  (room space)
+                                OR obj_dialogue_box    (GUI space)
+                                       └─► Draw / Draw GUI (renders text + choices)
+                                       └─► Step (text effects + extended typewriter)
+                              └─► obj_dialogue_manager Step
+                                       └─► typewriter + input
                                        └─► dialogue_next_line() / dialogue_end()
 ```
 
@@ -649,7 +662,341 @@ if is_choice {
 
 ---
 
-### obj_dialogue_prompt
+### obj_dialogue_box
+
+**Spawned per dialogue line** by `dialogue_show_line()` when the active node uses `"renderer": "box"`. Draws in **GUI space** so it stays locked to the bottom of the screen regardless of camera position. Never place manually in a room.
+
+#### Create Event
+
+```gml
+/// @description Dialogue Box — Initialize
+
+#region Core
+chars             = [];        // char struct array from scr_dialogue_parser
+speaker_name      = "";        // display name shown in name tag
+portrait_spr      = -1;        // sprite index for portrait — -1 = none
+is_choice         = false;
+choice_options    = [];
+choice_index      = 0;
+choice_style      = "vertical";
+choice_title_text = "";
+#endregion
+
+#region Layout
+// "full"      — text only, full width (Undertale style)
+// "portrait"  — portrait left, name tag + text right (Mother 3 style)
+// "name_only" — name tag above text, no portrait (EarthBound style)
+box_layout = "full";
+#endregion
+
+#region Box Dimensions — in GUI/screen space
+box_h      = 180;  // height of the dialogue box
+box_padding = 20;  // inner padding between box edge and content
+portrait_w  = 140; // width of portrait area when box_layout = "portrait"
+name_tag_h  = 36;  // height of name tag when using portrait or name_only layout
+box_margin  = 60;  // pixels of padding around the box on sides and bottom
+#endregion
+
+#region Text Padding Within Box
+// Additional offset inside the box — use to fine-tune text position
+text_padding_horizontal = 40;
+text_padding_vertical   = 20;
+#endregion
+
+#region Box Style
+box_sprite      = spr_box_default;          // swappable 9-slice background sprite
+box_alpha       = 1;                         // box opacity
+name_bg_color   = make_color_rgb(30, 30, 80); // name tag background color
+name_text_color = c_white;                   // name tag text color
+text_color      = c_white;                   // main text color — white for dark backgrounds
+#endregion
+
+#region Advance Key
+advance_key = ord("E"); // swap to ord("Z") for Undertale style
+#endregion
+
+#region Extended Choice Typewriter
+// Only used for horizontal_extended choice style
+choice_display_chars    = [];
+choice_typewriter_index = 0;
+choice_typewriter_timer = 0;
+choice_typewriter_speed = 2;
+#endregion
+```
+
+#### Step Event
+
+```gml
+/// @description Dialogue Box — Text Effects + Extended Typewriter
+
+#region Text Effects
+var _time = current_time * 0.005;
+for (var _i = 0; _i < array_length(chars); _i++) {
+    var _c = chars[_i];
+    if !_c.revealed continue;
+    switch (_c.effect) {
+        case "wave":
+            _c.y_off = sin(_time + _i * 0.4) * 3;
+        break;
+        case "shake":
+            _c.x_off = random_range(-1.5, 1.5);
+            _c.y_off = random_range(-1.5, 1.5);
+        break;
+        default:
+            _c.x_off = 0;
+            _c.y_off = 0;
+        break;
+    }
+}
+#endregion
+
+#region Extended Choice Typewriter
+if is_choice && choice_style == "horizontal_extended" {
+    if choice_typewriter_index < array_length(choice_display_chars) {
+        choice_typewriter_timer += choice_typewriter_speed;
+        while choice_typewriter_timer >= 1
+              && choice_typewriter_index < array_length(choice_display_chars) {
+            choice_display_chars[choice_typewriter_index].revealed = true;
+            choice_display_chars[choice_typewriter_index].alpha    = 1;
+            choice_typewriter_index++;
+            choice_typewriter_timer--;
+        }
+    }
+}
+#endregion
+```
+
+#### Draw GUI Event
+
+```gml
+/// @description Dialogue Box — Draw GUI
+// Draws in GUI/screen space — stays fixed to bottom regardless of camera
+
+#region Settings
+var _font_w  = 22;        // tune to match your font
+var _font_h  = 38;        // tune to match your font
+var _padding = box_padding;
+var _gui_w   = display_get_gui_width();
+var _gui_h   = display_get_gui_height();
+#endregion
+
+#region Box Position
+// box_margin adds padding around all sides so the box doesn't touch screen edges
+var _box_margin = box_margin;
+var _bx = _box_margin;
+var _by = _gui_h - box_h - _box_margin;
+var _bw = _gui_w - (_box_margin * 2);
+var _bh = box_h;
+#endregion
+
+#region Draw Box Background
+// 9-slice sprite stretches cleanly — swap spr_box_default for any styled sprite
+draw_set_alpha(box_alpha);
+draw_sprite_stretched(box_sprite, 0, _bx, _by, _bw, _bh);
+draw_set_alpha(1);
+#endregion
+
+#region Layout — Portrait
+var _text_x = _bx + _padding + text_padding_horizontal;
+var _text_y = _by + _padding + text_padding_vertical;
+var _text_w = _bw - _padding * 2;
+
+if box_layout == "portrait" && portrait_spr != -1 {
+    var _port_x = _bx + _padding;
+    var _port_y = _by + (_bh - portrait_w) / 2;
+    draw_sprite_stretched(portrait_spr, 0, _port_x, _port_y, portrait_w, portrait_w);
+    _text_x = _bx + portrait_w + _padding * 2;
+    _text_w = _bw - portrait_w - _padding * 3;
+}
+#endregion
+
+#region Layout — Name Tag
+if box_layout == "portrait" || box_layout == "name_only" {
+    if speaker_name != "" {
+        var _name_w = string_length(speaker_name) * _font_w + _padding * 2;
+        draw_set_color(name_bg_color);
+        draw_set_alpha(1);
+        draw_roundrect_ext(_text_x - 4, _text_y - 4, _text_x + _name_w, _text_y + name_tag_h, 4, 4, false);
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+        draw_set_color(name_text_color);
+        draw_set_alpha(1);
+        draw_text(_text_x + 4, _text_y + 4, speaker_name);
+        _text_y += name_tag_h + 8;
+    }
+}
+#endregion
+
+#region Draw Text
+var _chars_per_line = floor(_text_w / _font_w);
+var _draw_x = _text_x;
+var _draw_y = _text_y;
+var _col    = 0;
+
+draw_set_font(fnt_dialogue);
+draw_set_halign(fa_left);
+draw_set_valign(fa_top);
+
+for (var _i = 0; _i < array_length(chars); _i++) {
+    var _c = chars[_i];
+    if !_c.revealed continue;
+
+    if _col >= _chars_per_line || _c.char == "\n" {
+        _col    = 0;
+        _draw_x = _text_x;
+        _draw_y += _font_h;
+    }
+
+    // Swap default black to white for dark backgrounds — preserve explicit [color] tags
+    draw_set_color(_c.color == c_black ? c_white : _c.color);
+    draw_set_alpha(_c.alpha);
+
+    var _ix = _c.italic ? 2 : 0;
+    draw_text(_draw_x + _c.x_off + _ix, _draw_y + _c.y_off, _c.char);
+
+    _draw_x += _font_w;
+    _col++;
+}
+#endregion
+
+#region Draw Choices
+if is_choice {
+    var _title_lines    = dialogue_count_lines(choice_title_text, _chars_per_line);
+    var _choice_start_y = _text_y + (_title_lines * _font_h) + 8;
+
+    if choice_style == "vertical" {
+        var _cy = _choice_start_y;
+        for (var _i = 0; _i < array_length(choice_options); _i++) {
+            var _opt = choice_options[_i];
+            draw_set_font(fnt_dialogue);
+            if _i == choice_index {
+                draw_set_color(make_color_rgb(200, 230, 255));
+                draw_set_alpha(1);
+                draw_roundrect_ext(_text_x - 4, _cy - 2, _text_x + _text_w + 4, _cy + _font_h, 4, 4, false);
+                draw_set_color(c_black);
+                draw_set_alpha(1);
+                draw_text(_text_x + 12, _cy, "> " + _opt.text);
+            } else {
+                draw_set_color(make_color_rgb(180, 180, 180));
+                draw_set_alpha(1);
+                draw_text(_text_x + 12, _cy, "  " + _opt.text);
+            }
+            _cy += _font_h + 8;
+        }
+
+    } else if choice_style == "horizontal" {
+        var _total_opts = array_length(choice_options);
+        var _opt_widths = array_create(_total_opts, 0);
+        var _total_w    = 0;
+        for (var _i = 0; _i < _total_opts; _i++) {
+            _opt_widths[_i] = string_length("> " + choice_options[_i].text) * _font_w + _padding;
+            _total_w += _opt_widths[_i];
+        }
+        var _cx = _text_x + (_text_w - _total_w) / 2;
+        var _cy = _choice_start_y;
+        for (var _i = 0; _i < _total_opts; _i++) {
+            var _opt = choice_options[_i];
+            draw_set_font(fnt_dialogue);
+            if _i == choice_index {
+                draw_set_color(make_color_rgb(200, 230, 255));
+                draw_set_alpha(1);
+                draw_roundrect_ext(_cx - 4, _cy - 2, _cx + _opt_widths[_i], _cy + _font_h, 4, 4, false);
+                draw_set_color(c_black);
+                draw_set_alpha(1);
+                draw_text(_cx, _cy, "> " + _opt.text);
+            } else {
+                draw_set_color(make_color_rgb(180, 180, 180));
+                draw_set_alpha(1);
+                draw_text(_cx, _cy, "  " + _opt.text);
+            }
+            _cx += _opt_widths[_i];
+        }
+
+    } else if choice_style == "horizontal_extended" {
+        var _total_opts  = array_length(choice_options);
+        var _total_disp  = array_length(choice_display_chars);
+        var _text_draw_y = _choice_start_y;
+        var _text_draw_x = _text_x;
+        var _wcol        = 0;
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+        for (var _i = 0; _i < _total_disp; _i++) {
+            var _c = choice_display_chars[_i];
+            if !_c.revealed continue;
+            if _c.char == " " {
+                _text_draw_x += _font_w;
+                _wcol++;
+            } else {
+                var _word_len = 0;
+                var _j = _i;
+                while _j < _total_disp && choice_display_chars[_j].char != " " {
+                    _word_len++;
+                    _j++;
+                }
+                if _wcol + _word_len > _chars_per_line && _wcol > 0 {
+                    _text_draw_y += _font_h;
+                    _text_draw_x = _text_x;
+                    _wcol        = 0;
+                }
+                draw_set_color(c_white);
+                draw_set_alpha(_c.alpha);
+                draw_text(_text_draw_x + _c.x_off, _text_draw_y + _c.y_off, _c.char);
+                _text_draw_x += _font_w;
+                _wcol++;
+            }
+        }
+        var _dot_radius  = 7;
+        var _dot_gap     = 22;
+        var _dot_total_w = _total_opts * _dot_gap;
+        var _dot_start_x = _text_x + (_text_w - _dot_total_w) / 2 + _dot_gap / 2;
+        var _dot_y       = _by + _bh - _padding - _dot_radius;
+        for (var _i = 0; _i < _total_opts; _i++) {
+            var _dot_x = _dot_start_x + (_i * _dot_gap);
+            if _i == choice_index {
+                draw_set_color(c_white);
+                draw_set_alpha(1);
+                draw_circle(_dot_x, _dot_y, _dot_radius, false);
+            } else {
+                draw_set_color(c_white);
+                draw_set_alpha(0.3);
+                draw_circle(_dot_x, _dot_y, _dot_radius, false);
+                draw_set_color(make_color_rgb(30, 30, 80));
+                draw_set_alpha(1);
+                draw_circle(_dot_x, _dot_y, _dot_radius - 2, false);
+            }
+        }
+    }
+}
+#endregion
+
+#region Advance Indicator
+// Blinking triangle at bottom right — signals line is fully revealed, press E to advance
+if !is_choice {
+    var _blink = (current_time mod 800) < 400;
+    if _blink {
+        draw_set_color(c_white);
+        draw_set_alpha(1);
+        var _ax = _bx + _bw - _padding - 80; // shift left by increasing last value
+        var _ay = _by + _bh - _padding - 16;
+        draw_triangle(_ax, _ay, _ax + 14, _ay, _ax + 7, _ay + 10, false);
+    }
+}
+#endregion
+
+draw_set_alpha(1);
+draw_set_color(c_white);
+draw_set_font(-1);
+```
+
+**Notes:**
+
+- Uses `Draw GUI` event not `Draw` — this is what keeps it fixed to screen regardless of camera
+- `display_set_gui_size(1920, 1080)` must be called in `obj_dialogue_manager` Create to match your viewport
+- Swap `box_sprite` to any 9-slice sprite to completely change the visual style — no code changes needed
+- `box_layout = "full"` for Undertale style, `"portrait"` for Mother 3 style, `"name_only"` for EarthBound style
+- The advance triangle is drawn with code — no font glyph dependency
 
 **Spawned by each NPC on Create.** Shows a small floating bubble hint when Mae is in range.
 
@@ -1306,18 +1653,21 @@ Word-aware line counter. Returns how many lines `text` needs when wrapped at `ch
 
 ### Node Fields
 
-| Field     | Type   | Required | Description                         |
-| --------- | ------ | -------- | ----------------------------------- |
-| `id`      | string | yes      | Unique node identifier              |
-| `trigger` | string | no       | `"press"` or `"auto"` — used by NPC |
-| `lines`   | array  | yes      | Array of line objects               |
+| Field        | Type   | Required | Description                                                                |
+| ------------ | ------ | -------- | -------------------------------------------------------------------------- |
+| `id`         | string | yes      | Unique node identifier                                                     |
+| `trigger`    | string | no       | `"press"` or `"auto"` — used by NPC                                        |
+| `renderer`   | string | no       | `"bubble"` or `"box"` — overrides NPC default                              |
+| `box_layout` | string | no       | `"full"` \| `"portrait"` \| `"name_only"` — only used when renderer is box |
+| `lines`      | array  | yes      | Array of line objects                                                      |
 
 ### Normal Line Fields
 
-| Field     | Type   | Required | Description                         |
-| --------- | ------ | -------- | ----------------------------------- |
-| `speaker` | string | yes      | Must match `npc_id` or `"mae"`      |
-| `text`    | string | yes      | Dialogue text, supports inline tags |
+| Field      | Type   | Required | Description                                                   |
+| ---------- | ------ | -------- | ------------------------------------------------------------- |
+| `speaker`  | string | yes      | Must match `npc_id` or `"mae"`                                |
+| `text`     | string | yes      | Dialogue text, supports inline tags                           |
+| `portrait` | string | no       | Sprite asset name for portrait — only used in portrait layout |
 
 ### Choice Line Fields
 
@@ -1479,6 +1829,7 @@ The minimum set of assets to copy:
 ```
 obj_dialogue_manager
 obj_dialogue_bubble
+obj_dialogue_box
 obj_dialogue_prompt
 oMae (player — swap sprites and tune physics per game)
 oNPC (as a template)
@@ -1488,6 +1839,7 @@ scr_dialogue_functions
 scr_approach
 fnt_dialogue
 snd_typewriter
+spr_box_default        (9-slice sprite — swap for styled art per game)
 your_dialogue_file.json  (new per game)
 ```
 
@@ -1542,7 +1894,22 @@ instant_hide = true; // or false for soft fade
 | `jump_buffer_max` | oMae Create | Frames before landing that a jump press is remembered        |
 | `CAMERA_ZOOM`     | oMae Create | `ZOOM_CLOSE` / `ZOOM_NORMAL` / `ZOOM_FAR` — set per room     |
 
-### Dialogue + Bubble
+### Dialogue Box
+
+| Variable                  | Location   | Effect                                            |
+| ------------------------- | ---------- | ------------------------------------------------- |
+| `box_h`                   | box Create | Height of the textbox in GUI pixels               |
+| `box_padding`             | box Create | Inner padding between box edge and content        |
+| `box_margin`              | box Create | Outer margin — space between box and screen edges |
+| `text_padding_horizontal` | box Create | Additional horizontal text offset inside box      |
+| `text_padding_vertical`   | box Create | Additional vertical text offset inside box        |
+| `box_sprite`              | box Create | Swap to any 9-slice sprite to change box visual   |
+| `box_alpha`               | box Create | Box opacity — 1 = fully opaque                    |
+| `portrait_w`              | box Create | Width and height of portrait image area           |
+| `name_tag_h`              | box Create | Height of name tag background                     |
+| `name_bg_color`           | box Create | Name tag background color                         |
+| `advance_key`             | box Create | Key to advance lines — `ord("E")` or `ord("Z")`   |
+| `box_layout`              | box Create | `"full"` \| `"portrait"` \| `"name_only"`         |
 
 | Variable                | Location       | Effect                                       |
 | ----------------------- | -------------- | -------------------------------------------- |
@@ -1561,5 +1928,5 @@ instant_hide = true; // or false for soft fade
 
 ---
 
-_NITW Dialogue System — LoafCentral / Myles Moore_  
+_NITW Dialogue System — Myles Moore_  
 _Built as a reusable prototype foundation for GMS2 projects._
