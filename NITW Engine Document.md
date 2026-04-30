@@ -2,8 +2,8 @@
 
 ### A Night in the Woods-Inspired Dialogue Engine for GameMaker Studio 2
 
-**Author:** Myles Moore
-**Version:** 1.1  
+**Author:** Myles Moore / LoafCentral  
+**Version:** 1.2  
 **Engine:** GameMaker Studio 2 (GML)
 
 ---
@@ -1615,6 +1615,39 @@ Parses `option_text` and loads it into `bubble.choice_display_chars` with a fres
 
 Word-aware line counter. Returns how many lines `text` needs when wrapped at `chars_per_line`. Used for dynamic bubble height calculation.
 
+#### `dialogue_get_speaker_name(speaker_id)`
+
+Maps a speaker ID string to a display name shown in the name tag. Add entries per character in your game:
+
+```gml
+function dialogue_get_speaker_name(speaker_id) {
+    switch (speaker_id) {
+        case "mae":    return "Mae";
+        case "npc_01": return "Character Name";
+        default:       return speaker_id; // fallback to raw id
+    }
+}
+```
+
+#### `dialogue_box_set_undertale_style(box_inst)`
+
+Applies Undertale-style visual config to a box instance. Called automatically in `dialogue_show_line` when `current_box_style == "undertale"`. Draws a black rectangle with white border in code — no sprite dependency. Reads `current_box_position` from the manager so JSON position is respected.
+
+```gml
+function dialogue_box_set_undertale_style(box_inst) {
+    box_inst.box_style               = "undertale";
+    box_inst.box_layout              = "full";
+    box_inst.box_position            = obj_dialogue_manager.current_box_position;
+    box_inst.box_h                   = 200;
+    box_inst.box_margin              = 100;
+    box_inst.box_padding             = 24;
+    box_inst.box_alpha               = 1;
+    box_inst.text_padding_horizontal = 24;
+    box_inst.text_padding_vertical   = 20;
+    box_inst.advance_key             = ord("Z");
+}
+```
+
 ---
 
 ## JSON Schema
@@ -1653,13 +1686,15 @@ Word-aware line counter. Returns how many lines `text` needs when wrapped at `ch
 
 ### Node Fields
 
-| Field        | Type   | Required | Description                                                                |
-| ------------ | ------ | -------- | -------------------------------------------------------------------------- |
-| `id`         | string | yes      | Unique node identifier                                                     |
-| `trigger`    | string | no       | `"press"` or `"auto"` — used by NPC                                        |
-| `renderer`   | string | no       | `"bubble"` or `"box"` — overrides NPC default                              |
-| `box_layout` | string | no       | `"full"` \| `"portrait"` \| `"name_only"` — only used when renderer is box |
-| `lines`      | array  | yes      | Array of line objects                                                      |
+| Field          | Type   | Required | Description                                                                |
+| -------------- | ------ | -------- | -------------------------------------------------------------------------- |
+| `id`           | string | yes      | Unique node identifier                                                     |
+| `trigger`      | string | no       | `"press"` or `"auto"` — used by NPC                                        |
+| `renderer`     | string | no       | `"bubble"` or `"box"` — overrides NPC default                              |
+| `box_layout`   | string | no       | `"full"` \| `"portrait"` \| `"name_only"` — only used when renderer is box |
+| `box_style`    | string | no       | `"undertale"` — applies Undertale visual preset to the box                 |
+| `box_position` | string | no       | `"bottom"` (default) \| `"top"` — where the box sits on screen             |
+| `lines`        | array  | yes      | Array of line objects                                                      |
 
 ### Normal Line Fields
 
@@ -1696,14 +1731,20 @@ All tags are parsed by `scr_dialogue_parser` at line-load time.
 | `[wave]text[/wave]`           | Sine wave Y oscillation     |
 | `[shake]text[/shake]`         | Random X/Y jitter per frame |
 | `[i]text[/i]`                 | Fake italic via X offset    |
-| `[color=#rrggbb]text[/color]` | Per-character color         |
+| `[color=#rrggbb]text[/color]` | Per-character hex color     |
+| `[color=name]text[/color]`    | Per-character named color   |
 | `[br]`                        | Force line break            |
+
+### Supported Named Colors
+
+`red` `green` `blue` `yellow` `white` `black` `orange` `purple` `gray` `grey` `lime` `aqua` `pink`
 
 ### Example
 
 ```json
 "text": "I'm [i]really[/i] not [wave]okay[/wave] right now."
 "text": "This is [color=#ff0000]important[/color]."
+"text": "Feeling [color=red]angry[/color] today."
 "text": "First thought.[br]Second thought."
 ```
 
@@ -1896,20 +1937,24 @@ instant_hide = true; // or false for soft fade
 
 ### Dialogue Box
 
-| Variable                  | Location   | Effect                                            |
-| ------------------------- | ---------- | ------------------------------------------------- |
-| `box_h`                   | box Create | Height of the textbox in GUI pixels               |
-| `box_padding`             | box Create | Inner padding between box edge and content        |
-| `box_margin`              | box Create | Outer margin — space between box and screen edges |
-| `text_padding_horizontal` | box Create | Additional horizontal text offset inside box      |
-| `text_padding_vertical`   | box Create | Additional vertical text offset inside box        |
-| `box_sprite`              | box Create | Swap to any 9-slice sprite to change box visual   |
-| `box_alpha`               | box Create | Box opacity — 1 = fully opaque                    |
-| `portrait_w`              | box Create | Width and height of portrait image area           |
-| `name_tag_h`              | box Create | Height of name tag background                     |
-| `name_bg_color`           | box Create | Name tag background color                         |
-| `advance_key`             | box Create | Key to advance lines — `ord("E")` or `ord("Z")`   |
-| `box_layout`              | box Create | `"full"` \| `"portrait"` \| `"name_only"`         |
+| Variable                  | Location   | Effect                                                                     |
+| ------------------------- | ---------- | -------------------------------------------------------------------------- |
+| `box_h`                   | box Create | Height of the textbox in GUI pixels                                        |
+| `box_padding`             | box Create | Inner padding between box edge and content                                 |
+| `box_margin`              | box Create | Outer margin — space between box and screen edges                          |
+| `text_padding_horizontal` | box Create | Additional horizontal text offset inside box                               |
+| `text_padding_vertical`   | box Create | Additional vertical text offset inside box                                 |
+| `box_sprite`              | box Create | Swap to any 9-slice sprite to change box visual                            |
+| `box_alpha`               | box Create | Box opacity — 1 = fully opaque                                             |
+| `portrait_w`              | box Create | Width and height of portrait image area                                    |
+| `name_tag_h`              | box Create | Height of name tag background                                              |
+| `name_bg_color`           | box Create | Name tag background color                                                  |
+| `advance_key`             | box Create | Key to advance lines — `ord("E")` or `ord("Z")`                            |
+| `box_layout`              | box Create | `"full"` \| `"portrait"` \| `"name_only"`                                  |
+| `box_style`               | box Create | `"default"` or `"undertale"` — undertale draws with code, no sprite needed |
+| `box_position`            | box Create | `"bottom"` or `"top"` — which edge of screen the box sits on               |
+
+### Dialogue + Bubble
 
 | Variable                | Location       | Effect                                       |
 | ----------------------- | -------------- | -------------------------------------------- |
@@ -1928,5 +1973,5 @@ instant_hide = true; // or false for soft fade
 
 ---
 
-_NITW Dialogue System — Myles Moore_  
+_NITW Dialogue System — LoafCentral / Myles Moore_  
 _Built as a reusable prototype foundation for GMS2 projects._
