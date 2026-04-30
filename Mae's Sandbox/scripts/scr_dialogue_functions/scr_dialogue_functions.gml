@@ -144,10 +144,8 @@ function dialogue_show_line() {
         // Portrait — read from line if present
         if variable_struct_exists(_line, "portrait") {
 		    var _spr = asset_get_index(_line.portrait);
-		    show_debug_message("portrait lookup: " + _line.portrait + " = " + string(_spr));
 		    _inst.portrait_spr = (_spr != -1) ? _spr : -1;
 		} else {
-		    show_debug_message("no portrait field on this line");
 		    _inst.portrait_spr = -1;
 		}
 

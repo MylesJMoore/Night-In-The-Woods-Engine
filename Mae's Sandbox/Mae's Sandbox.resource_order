@@ -15,10 +15,10 @@
     {"name":"Sounds","order":3,"path":"folders/Sounds.yy",},
     {"name":"Sprites","order":1,"path":"folders/Sprites.yy",},
     {"name":"oMae","order":5,"path":"folders/Sprites/oMae.yy",},
+    {"name":"Portraits","order":9,"path":"folders/Sprites/Portraits.yy",},
     {"name":"Textboxes","order":8,"path":"folders/Sprites/Textboxes.yy",},
     {"name":"Tile Sets","order":2,"path":"folders/Tile Sets.yy",},
     {"name":"Timelines","order":8,"path":"folders/Timelines.yy",},
-    {"name":"Portraits","order":9,"path":"folders/Sprites/Portraits.yy",},
   ],
   "ResourceOrderSettings": [
     {"name":"spr_wall","order":4,"path":"sprites/spr_wall/spr_wall.yy",},

@@ -26,10 +26,10 @@
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Sounds","folderPath":"folders/Sounds.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Sprites","folderPath":"folders/Sprites.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"oMae","folderPath":"folders/Sprites/oMae.yy",},
+    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Portraits","folderPath":"folders/Sprites/Portraits.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Textboxes","folderPath":"folders/Sprites/Textboxes.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Tile Sets","folderPath":"folders/Tile Sets.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Timelines","folderPath":"folders/Timelines.yy",},
-    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Portraits","folderPath":"folders/Sprites/Portraits.yy",},
   ],
   "IncludedFiles": [
     {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"dialogue_test.json","CopyToMask":-1,"filePath":"datafiles",},
