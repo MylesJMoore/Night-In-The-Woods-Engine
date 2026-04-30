@@ -34,6 +34,26 @@ function dialogue_start(node_id) {
 	                            ? _calling_npc.default_renderer
 	                            : "bubble";
 	}
+	
+	// Read box layout from node — defaults to "full" if not specified
+	if variable_struct_exists(_mgr.current_node, "box_layout") {
+	    _mgr.current_box_layout = _mgr.current_node.box_layout;
+	} else {
+	    _mgr.current_box_layout = "full";
+	}
+	
+	// Read box style from node
+	if variable_struct_exists(_mgr.current_node, "box_style") {
+	    _mgr.current_box_style = _mgr.current_node.box_style;
+	} else {
+	    _mgr.current_box_style = "default";
+	}
+	
+	if variable_struct_exists(_mgr.current_node, "box_position") {
+	    _mgr.current_box_position = _mgr.current_node.box_position;
+	} else {
+	    _mgr.current_box_position = "bottom";
+	}
     
     dialogue_show_line();
 }
@@ -116,14 +136,20 @@ function dialogue_show_line() {
         _inst.box_layout    = _mgr.current_box_layout;
         _inst.speaker_name  = dialogue_get_speaker_name(_line.speaker);
         _inst.advance_key   = _mgr.interact_key;
+		
+		if _mgr.current_box_style == "undertale" {
+		    dialogue_box_set_undertale_style(_inst);
+		}
 
         // Portrait — read from line if present
         if variable_struct_exists(_line, "portrait") {
-            var _spr = asset_get_index(_line.portrait);
-            _inst.portrait_spr = (_spr != -1) ? _spr : -1;
-        } else {
-            _inst.portrait_spr = -1;
-        }
+		    var _spr = asset_get_index(_line.portrait);
+		    show_debug_message("portrait lookup: " + _line.portrait + " = " + string(_spr));
+		    _inst.portrait_spr = (_spr != -1) ? _spr : -1;
+		} else {
+		    show_debug_message("no portrait field on this line");
+		    _inst.portrait_spr = -1;
+		}
 
     } else {
         // Spawn bubble renderer
@@ -218,10 +244,24 @@ function dialogue_get_speaker_name(speaker_id) {
     // Add entries here for each character in your game
     switch (speaker_id) {
         case "mae":    return "Mae";
-        case "npc_01": return "Bea";
+        case "bruce": return "Bruce";
         case "npc_02": return "Gregg";
         case "npc_03": return "Angus";
         case "npc_04": return "Mae";
         default:       return speaker_id; // fallback to raw id
     }
+}
+
+function dialogue_box_set_undertale_style(box_inst) {
+    // Configures a box instance to match Undertale's visual style
+	box_inst.box_style = "undertale";
+    box_inst.box_layout   = "full";
+	box_inst.box_position = obj_dialogue_manager.current_box_position; // "bottom" or "top"
+    box_inst.box_h        = 200;
+    box_inst.box_margin   = 100;
+    box_inst.box_padding  = 24;
+    box_inst.box_alpha    = 1;
+    box_inst.text_padding_horizontal = 24;
+    box_inst.text_padding_vertical   = 20;
+    box_inst.advance_key  = ord("Z");
 }

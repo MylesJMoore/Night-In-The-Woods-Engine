@@ -43,15 +43,40 @@ function dialogue_parse_text(text) {
                     break;
 
                     default:
-                        // Color tag — format: [color=#rrggbb]
-                        if string_starts_with(_tag, "color=#") {
-                            var _hex = string_delete(_tag, 1, 7); // strip "color=#"
-                            var _r   = real("0x" + string_copy(_hex, 1, 2));
-                            var _g   = real("0x" + string_copy(_hex, 3, 2));
-                            var _b   = real("0x" + string_copy(_hex, 5, 2));
-                            _color   = make_color_rgb(_r, _g, _b);
-                        }
-                    break;
+					    if string_starts_with(_tag, "color=") {
+					        var _color_val = string_delete(_tag, 1, 6); // strip "color="
+        
+					        if string_starts_with(_color_val, "#") {
+					            // Hex code — strip # and parse RGB
+					            var _hex = string_delete(_color_val, 1, 1);
+					            var _r   = real("0x" + string_copy(_hex, 1, 2));
+					            var _g   = real("0x" + string_copy(_hex, 3, 2));
+					            var _b   = real("0x" + string_copy(_hex, 5, 2));
+					            _color   = make_color_rgb(_r, _g, _b);
+					        } else {
+					            // Named color — map to GM constants
+					            switch (_color_val) {
+					                case "red":     _color = c_red;     break;
+					                case "green":   _color = c_green;   break;
+					                case "blue":    _color = c_blue;    break;
+					                case "yellow":  _color = c_yellow;  break;
+					                case "white":   _color = c_white;   break;
+					                case "black":   _color = c_black;   break;
+					                case "orange":  _color = c_orange;  break;
+					                case "purple":  _color = make_color_rgb(128, 0, 128); break;
+					                case "gray":
+					                case "grey":    _color = c_gray;    break;
+					                case "lime":    _color = c_lime;    break;
+					                case "aqua":    _color = c_aqua;    break;
+					                case "pink":    _color = make_color_rgb(255, 105, 180); break;
+					                default:        _color = c_white;   break;
+					            }
+					        }
+					    }
+					    if _tag == "/color" {
+					        _color = c_black; // reset to default
+					    }
+					break;
                 }
                 
                 _i = _tag_end + 1;

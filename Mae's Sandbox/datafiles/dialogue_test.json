@@ -6,41 +6,51 @@
       "box_layout": "portrait",
       "lines": [
         {
-          "speaker": "npc_01",
+          "speaker": "bruce",
           "text": "Oh hey. You're back.",
           "portrait": "spr_portrait_placeholder"
         },
         {
           "speaker": "mae",
           "text": "Yeah I just... [wave]needed to walk.[/wave]",
-          "portrait": "spr_mae_portrait"
+          "portrait": "spr_portrait_placeholder2"
         }
       ]
     },
     {
       "id": "npc_01_greet_return",
       "renderer": "box",
-      "box_layout": "name_only",
+      "box_layout": "portrait",
       "lines": [
-        { "speaker": "npc_01", "text": "Still hanging around huh." }
+        { "speaker": "bruce", 
+		  "text": "Still hanging around huh." ,
+		  "portrait": "spr_portrait_placeholder"
+		},
+		{ "speaker": "bruce", 
+		  "text": "This is [color=#ff0000]red text[/color] and this is normal." ,
+		  "portrait": ""
+		},
       ]
     },
     {
-      "id": "npc_05_greet",
-      "trigger": "press",
-      "lines": [
-        { "speaker": "npc_05", "text": "Oh hey. You're back." },
-        { "speaker": "mae",    "text": "Yeah I... [wave]needed to walk.[/wave]" },
-        { "speaker": "npc_05", "text": "Good to see you either way." }
-      ]
-    },
-    {
-      "id": "npc_05_greet_return",
-      "trigger": "press",
-      "lines": [
-        { "speaker": "npc_05", "text": "Still hanging around huh." }
-      ]
-    },
+		"id": "npc_undertale_greet",
+		"renderer": "box",
+		"box_layout": "full",
+		"box_style": "undertale",
+		"lines": [
+			{ "speaker": "npc_undertale", "text": "Feelin' [color=#ff0000]determined[/color]." }
+		]
+	},
+	{
+		"id": "npc_undertale_greet_return",
+		"renderer": "box",
+		"box_layout": "full",
+		"box_style": "undertale",
+		"box_position": "top",
+		"lines": [
+			{ "speaker": "npc_undertale", "text": "Can feel it in my heart." }
+		]
+	},
     {
       "id": "npc_02_greet",
       "trigger": "press",

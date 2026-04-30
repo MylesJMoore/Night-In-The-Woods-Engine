@@ -50,6 +50,8 @@ typewriter_pitch_vary = true;      // slight random pitch for personality
 // -------------------------
 current_renderer   = "bubble"; // "bubble" or "box" — set per node
 current_box_layout = "full";   // "full" | "portrait" | "name_only"
+current_box_style = "default" // "default" | "undertale"
+current_box_position = "bottom" // "bottom" | "top" | Undertale Textboxes
 
 // -------------------------
 // GUI DIMENSIONS

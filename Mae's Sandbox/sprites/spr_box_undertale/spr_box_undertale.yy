@@ -1,10 +1,10 @@
 {
   "resourceType": "GMSprite",
   "resourceVersion": "1.0",
-  "name": "spr_portrait_placeholder",
-  "bbox_bottom": 270,
+  "name": "spr_box_undertale",
+  "bbox_bottom": 49,
   "bbox_left": 0,
-  "bbox_right": 269,
+  "bbox_right": 49,
   "bbox_top": 0,
   "bboxMode": 0,
   "collisionKind": 1,
@@ -13,19 +13,19 @@
   "edgeFiltering": false,
   "For3D": false,
   "frames": [
-    {"resourceType":"GMSpriteFrame","resourceVersion":"1.1","name":"800c9ff1-327e-4427-8a55-e81d12718e0b",},
+    {"resourceType":"GMSpriteFrame","resourceVersion":"1.1","name":"689d486b-663e-4f92-8bf5-3a91b5a938a1",},
   ],
   "gridX": 0,
   "gridY": 0,
-  "height": 271,
+  "height": 50,
   "HTile": false,
   "layers": [
-    {"resourceType":"GMImageLayer","resourceVersion":"1.0","name":"e2a91ad3-9600-4b1c-b5a9-b4b0bff8d68e","blendMode":0,"displayName":"default","isLocked":false,"opacity":100.0,"visible":true,},
+    {"resourceType":"GMImageLayer","resourceVersion":"1.0","name":"41ef97f5-a157-4438-bfac-2a55e50391e5","blendMode":0,"displayName":"default","isLocked":false,"opacity":100.0,"visible":true,},
   ],
   "nineSlice": {
     "resourceType": "GMNineSliceData",
     "resourceVersion": "1.0",
-    "bottom": 0,
+    "bottom": 2,
     "enabled": true,
     "guideColour": [
       4294902015,
@@ -35,8 +35,8 @@
     ],
     "highlightColour": 1728023040,
     "highlightStyle": 0,
-    "left": 0,
-    "right": 0,
+    "left": 2,
+    "right": 2,
     "tileMode": [
       0,
       0,
@@ -44,18 +44,18 @@
       0,
       0,
     ],
-    "top": 0,
+    "top": 2,
   },
   "origin": 0,
   "parent": {
-    "name": "Sprites",
-    "path": "folders/Sprites.yy",
+    "name": "Textboxes",
+    "path": "folders/Sprites/Textboxes.yy",
   },
   "preMultiplyAlpha": false,
   "sequence": {
     "resourceType": "GMSequence",
     "resourceVersion": "1.4",
-    "name": "spr_portrait_placeholder",
+    "name": "spr_box_undertale",
     "autoRecord": true,
     "backdropHeight": 768,
     "backdropImageOpacity": 0.5,
@@ -77,7 +77,7 @@
     "timeUnits": 1,
     "tracks": [
       {"resourceType":"GMSpriteFramesTrack","resourceVersion":"1.0","name":"frames","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"1.0","Keyframes":[
-            {"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"1.0","Channels":{"0":{"resourceType":"SpriteFrameKeyframe","resourceVersion":"1.0","Id":{"name":"800c9ff1-327e-4427-8a55-e81d12718e0b","path":"sprites/spr_portrait_placeholder/spr_portrait_placeholder.yy",},},},"Disabled":false,"id":"53d04d99-bfcd-41fb-a097-1178d6f9285a","IsCreationKey":false,"Key":0.0,"Length":1.0,"Stretch":false,},
+            {"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"1.0","Channels":{"0":{"resourceType":"SpriteFrameKeyframe","resourceVersion":"1.0","Id":{"name":"689d486b-663e-4f92-8bf5-3a91b5a938a1","path":"sprites/spr_box_undertale/spr_box_undertale.yy",},},},"Disabled":false,"id":"989aacc7-67ad-47c3-944f-5bfdf6a04765","IsCreationKey":false,"Key":0.0,"Length":1.0,"Stretch":false,},
           ],},"modifiers":[],"spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange": null,
@@ -93,5 +93,5 @@
   },
   "type": 0,
   "VTile": false,
-  "width": 270,
+  "width": 50,
 }

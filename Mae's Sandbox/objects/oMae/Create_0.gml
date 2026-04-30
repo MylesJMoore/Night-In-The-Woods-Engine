@@ -46,7 +46,7 @@ mask_index = spr_mae_idle; // Lock collision mask permanently
 #macro ZOOM_NORMAL  1
 #macro ZOOM_FAR     2
 
-var CAMERA_ZOOM = ZOOM_NORMAL; // change this to switch presets
+var CAMERA_ZOOM = ZOOM_CLOSE; // change this to switch presets
 
 var _zoom_w, _zoom_h;
 switch (CAMERA_ZOOM) {

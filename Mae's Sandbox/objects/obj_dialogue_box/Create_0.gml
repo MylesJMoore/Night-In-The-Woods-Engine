@@ -35,6 +35,8 @@ box_alpha   = 1;
 name_bg_color   = make_color_rgb(30, 30, 80);  // dark blue name tag
 name_text_color = c_white;
 text_color      = c_white;      // text color — white on dark bg
+box_style = "default"
+box_position = "bottom"; // "bottom" or "top"
 #endregion
 
 #region Advance Key

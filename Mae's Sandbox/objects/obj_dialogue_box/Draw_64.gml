@@ -9,18 +9,40 @@ var _gui_h   = display_get_gui_height();
 #endregion
 
 #region Box Position — bottom of screen
-var _box_margin = box_margin; // side and bottom padding — tune this
+var _box_margin = box_margin;
 var _bx = _box_margin;
-var _by = _gui_h - box_h - _box_margin;
 var _bw = _gui_w - (_box_margin * 2);
 var _bh = box_h;
+
+if box_position == "top" {
+    var _by = _box_margin;
+} else {
+    var _by = _gui_h - box_h - _box_margin;
+}
 #endregion
 
 #region Draw Box Background
-// Nine-slice sprite stretches cleanly to any size
-draw_set_alpha(box_alpha);
-draw_sprite_stretched(box_sprite, 0, _bx, _by, _bw, _bh);
-draw_set_alpha(1);
+if box_style == "undertale" {
+    // Draw white border rectangle first
+    draw_set_color(c_white);
+    draw_set_alpha(1);
+    draw_rectangle(_bx, _by, _bx + _bw, _by + _bh, false);
+    
+    // Draw black fill on top, inset by border thickness
+    var _border = 12; // border thickness in pixels — tune this
+    draw_set_color(c_black);
+    draw_set_alpha(1);
+    draw_rectangle(
+        _bx + _border, _by + _border,
+        _bx + _bw - _border, _by + _bh - _border,
+        false
+    );
+} else {
+    // Normal 9-slice sprite for other styles
+    draw_set_alpha(box_alpha);
+    draw_sprite_stretched(box_sprite, 0, _bx, _by, _bw, _bh);
+    draw_set_alpha(1);
+}
 #endregion
 
 #region Layout — Portrait
@@ -59,7 +81,7 @@ if box_layout == "portrait" || box_layout == "name_only" {
         draw_set_valign(fa_top);
         draw_set_color(name_text_color);
         draw_set_alpha(1);
-        draw_text(_text_x + 4, _text_y + 4, speaker_name);
+        draw_text(_text_x + 4, _text_y + - 2, speaker_name);
 
         // Push text down below name tag
         _text_y += name_tag_h + 8;
@@ -232,6 +254,7 @@ if is_choice {
         }
     } // closes horizontal_extended
 } // closes if is_choice
+#endregion
 
 #region Advance Indicator
 // Blinking arrow at bottom right when text is fully revealed
@@ -252,7 +275,8 @@ if !is_choice {
 }
 #endregion
 
-// Reset draw state
+#region Reset Draw State
 draw_set_alpha(1);
 draw_set_color(c_white);
 draw_set_font(-1);
+#endregion
