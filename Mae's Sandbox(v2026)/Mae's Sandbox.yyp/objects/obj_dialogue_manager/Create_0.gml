@@ -14,6 +14,8 @@ if !variable_struct_exists(self, "flags") {
 // STATE
 // -------------------------
 active = false;          // is dialogue currently running
+just_ended_timer = 0;
+dialogue_just_ended = false;
 dialogue_data = undefined; // loaded JSON
 current_node = undefined;  // current node struct
 line_index = 0;            // which line we're on

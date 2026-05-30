@@ -1,6 +1,7 @@
 /// @description Dialogue Box — Initialize
 
 #region Core
+fully_revealed = false;
 chars        = [];        // char struct array from parser
 speaker_name = "";        // display name shown in name tag
 portrait_spr = -1;        // sprite index for portrait, -1 = none

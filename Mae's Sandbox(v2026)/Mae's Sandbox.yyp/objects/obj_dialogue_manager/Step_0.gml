@@ -1,3 +1,16 @@
+// -------------------------
+// JUST ENDED TIMER
+// Runs every frame regardless of active state
+// Keeps dialogue_just_ended = true for 2 frames after end
+// so oNPC Step sees it before it clears
+// -------------------------
+if just_ended_timer > 0 {
+    just_ended_timer--;
+    if just_ended_timer <= 0 {
+        dialogue_just_ended = false;
+    }
+}
+
 if !active exit;
 
 var _bubble = bubble_inst;
@@ -16,19 +29,24 @@ if char_index < _total {
         _chars[char_index].alpha = 1;
         char_index++;
         typewriter_timer--;
-		
-		// Play sound on each revealed character
-        // Skip spaces and punctuation for cleaner sound
+
         var _revealed_char = _chars[char_index - 1].char;
-        if _revealed_char != " " && _revealed_char != "." 
-        && _revealed_char != "," && _revealed_char != "!" 
+        if _revealed_char != " " && _revealed_char != "."
+        && _revealed_char != "," && _revealed_char != "!"
         && _revealed_char != "?" {
-            var _pitch = typewriter_pitch_vary 
-                         ? random_range(0.9, 1.1) 
+            var _pitch = typewriter_pitch_vary
+                         ? random_range(0.9, 1.1)
                          : 1.0;
             audio_play_sound(typewriter_sound, 1, false);
             audio_sound_pitch(typewriter_sound, _pitch);
         }
+    }
+}
+
+// Set fully_revealed when typewriter finishes
+if char_index >= _total {
+    if instance_exists(bubble_inst) {
+        bubble_inst.fully_revealed = true;
     }
 }
 
@@ -42,10 +60,8 @@ if instance_exists(bubble_inst) {
     var _style     = bubble_inst.choice_style;
 
     if _is_choice {
-        // Capture index BEFORE navigation so we can detect changes
         var _prev_index = bubble_inst.choice_index;
 
-        // ---- NAVIGATION ----
         if _style == "vertical" {
             if keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W")) {
                 bubble_inst.choice_index = (bubble_inst.choice_index - 1 + _count) mod _count;
@@ -69,7 +85,6 @@ if instance_exists(bubble_inst) {
             }
         }
 
-        // If index changed and style is extended — reload option text with typewriter
         if bubble_inst.choice_index != _prev_index && _style == "horizontal_extended" {
             dialogue_bubble_set_option(
                 bubble_inst,
@@ -77,25 +92,23 @@ if instance_exists(bubble_inst) {
             );
         }
 
-        // ---- CONFIRM ----
         if keyboard_check_pressed(interact_key) {
             var _chosen = _opts[bubble_inst.choice_index];
             dialogue_start(_chosen.goto);
         }
 
     } else {
-        // ---- NORMAL LINE ----
         var _line_chars = bubble_inst.chars;
         var _line_total = array_length(_line_chars);
 
         if keyboard_check_pressed(interact_key) {
             if char_index < _line_total {
-                // Snap typewriter to full line
                 for (var _i = 0; _i < _line_total; _i++) {
                     _line_chars[_i].revealed = true;
                     _line_chars[_i].alpha = 1;
                 }
                 char_index = _line_total;
+				bubble_inst.fully_revealed = true;
             } else {
                 dialogue_next_line();
             }

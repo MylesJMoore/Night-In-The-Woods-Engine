@@ -258,20 +258,20 @@ if is_choice {
 
 #region Advance Indicator
 // Blinking arrow at bottom right when text is fully revealed
-if !is_choice {
-    var _blink = (current_time mod 800) < 400;
-    if _blink {
-        draw_set_color(c_white);
-        draw_set_alpha(1);
-        var _ax = _bx + _bw - _padding - 80;
-        var _ay = _by + _bh - _padding - 16;
-        draw_triangle(
-            _ax,      _ay,
-            _ax + 14, _ay,
-            _ax + 7,  _ay + 10,
-            false
-        );
-    }
+if !is_choice && fully_revealed {
+	var _blink = (current_time mod 800) < 400;
+	if _blink {
+	    draw_set_color(c_white);
+	    draw_set_alpha(1);
+	    var _ax = _bx + _bw - _padding - 80;
+	    var _ay = _by + _bh - _padding - 16;
+	    draw_triangle(
+	        _ax,      _ay,
+	        _ax + 14, _ay,
+	        _ax + 7,  _ay + 10,
+	        false
+	    );
+	}
 }
 #endregion
 

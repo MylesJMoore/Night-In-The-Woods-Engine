@@ -176,12 +176,14 @@ function dialogue_next_line() {
 function dialogue_end() {
     var _mgr = obj_dialogue_manager;
     _mgr.active = false;
+    _mgr.dialogue_just_ended = true;
+    _mgr.just_ended_timer = 2; // stays true for 2 frames
     _mgr.current_node = undefined;
-    
+
     if instance_exists(_mgr.bubble_inst) {
         instance_destroy(_mgr.bubble_inst);
     }
-    
+
     _mgr.bubble_inst = noone;
 }
 
